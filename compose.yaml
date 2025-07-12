@@ -1,0 +1,8 @@
+name: wcratics
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '$PORT:3000'
