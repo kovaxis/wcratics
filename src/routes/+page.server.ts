@@ -1,5 +1,5 @@
 import { getState } from '$lib/server/state';
-import type { GlobalState } from '$lib/statetype';
+import type { GlobalState } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 interface Data {
