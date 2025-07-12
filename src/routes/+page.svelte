@@ -8,57 +8,47 @@
 	let connected = $state(true);
 
 	$effect(() => {
-		let running = true;
-		async function listenToStream() {
-			while (running) {
-				// Attempt to connect
-				let waitTime = 1000;
-				let connection;
-				while (true) {
-					try {
-						const resp = await fetch('/api/state');
-						if (!resp.body) throw new Error('state stream response with no body');
-						connection = resp.body;
-						break;
-					} catch (e) {
-						console.error('State stream reconnect:', e);
-						// Sleep or wait until the `online` event happens
-						const abort = new AbortController();
-						const onOnline = () => {
-							abort.abort();
-						};
-						try {
-							window.addEventListener('online', onOnline);
-							await sleep(waitTime, abort.signal);
-							waitTime = Math.min(waitTime * 2, 10000);
-						} catch (e) {
-						} finally {
-							window.removeEventListener('online', onOnline);
-						}
-					}
-				}
+		let connection: EventSource | null = null;
+		let waitTime = 1000;
+
+		function connect() {
+			connection = new EventSource('/api/state');
+			connection.onopen = () => {
+				console.log('Connected to state stream');
 				connected = true;
-				// Receive data
-				try {
-					connected = true;
-					while (running) {
-						const chunk = await connection.getReader().read();
-						if (chunk.value) {
-							globalState = JSON.parse(new TextDecoder().decode(chunk.value));
-						}
-						if (chunk.done) break;
-					}
-				} catch (e) {
-					// Error receiving data
-					console.error('State stream receive:', e);
-				}
+				waitTime = 1000;
+			};
+			connection.onerror = async (ev) => {
+				console.log(`Connection to state stream failed, retrying in ${waitTime}ms`);
+				connection?.close();
 				connected = false;
-			}
+				connection = null;
+				// Sleep or wait until the `online` event happens
+				const abort = new AbortController();
+				const onOnline = () => {
+					abort.abort();
+				};
+				try {
+					window.addEventListener('online', onOnline);
+					await sleep(waitTime, abort.signal);
+					waitTime = Math.min(waitTime * 2, 10000);
+				} catch (e) {
+				} finally {
+					window.removeEventListener('online', onOnline);
+				}
+				// Attempt to reconnect
+				connect();
+			};
+			connection.onmessage = (ev) => {
+				console.log(`State stream update`);
+				globalState = JSON.parse(ev.data);
+			};
 		}
-		void listenToStream();
+
+		connect();
+
 		return () => {
-			connected = false;
-			running = false;
+			connection?.close();
 		};
 	});
 </script>

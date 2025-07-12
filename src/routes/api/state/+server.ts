@@ -9,10 +9,10 @@ import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = () => {
 	let onChange: GlobalStateListener | null = null;
-	const stream = new ReadableStream<Uint8Array<ArrayBufferLike>>({
+	const stream = new ReadableStream<string>({
 		start(controller) {
 			onChange = (state: GlobalState) => {
-				controller.enqueue(new TextEncoder().encode(JSON.stringify(state)));
+				controller.enqueue(`data: ${JSON.stringify(state)}\n\n`);
 			};
 			registerListener(onChange);
 			onChange(getState());
@@ -21,5 +21,10 @@ export const GET: RequestHandler = () => {
 			if (onChange) unregisterListener(onChange);
 		}
 	});
-	return new Response(stream);
+	return new Response(stream, {
+		headers: {
+			'Content-Type': 'text/event-stream',
+			'Cache-Control': 'no-cache'
+		}
+	});
 };
