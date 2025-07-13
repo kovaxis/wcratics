@@ -1,22 +1,7 @@
 import * as fs from 'fs';
-import type { Category, Piece } from '$lib/types';
+import type { Category, Piece, Tierlist } from '$lib/types';
 
 async function loadPieces(): Promise<Piece[]> {
-	interface TierPiece {
-		img: string;
-	}
-
-	interface Tier {
-		pieces: TierPiece[];
-		color: string;
-		title: string;
-	}
-
-	interface Tierlist {
-		tiers: Tier[];
-		loose: TierPiece[];
-	}
-
 	let rawParsed: Tierlist;
 	try {
 		const rawSrc = fs.readFileSync('./storage/tierlist.tier', 'utf8');

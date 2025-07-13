@@ -5,12 +5,13 @@ import {
 	unregisterListener,
 	type GlobalStateListener
 } from '$lib/server/state';
-import { StateAction, type GlobalState, type StateActionResp } from '$lib/types';
+import { StateAction, type GlobalState, type StateActionResp, type Tierlist } from '$lib/types';
 import type { Infer } from 'zod/v4';
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { CATEGORIES, PIECES } from '$lib/server/gamedata';
 import { takeRandom } from '$lib/util';
+import * as fs from 'fs';
 
 const PIECE_COUNT = 5;
 const BET_TIMEOUT = 60 * 1000;
@@ -112,7 +113,7 @@ function handleAction(action: Infer<typeof StateAction>): StateActionResp {
 					throw new Error('unknown piece');
 				if (newPlaced[action.place] !== null) throw new Error('position is taken');
 				newPlaced[action.place] = action.piece;
-				const newState: GlobalState = {
+				let newState: GlobalState = {
 					...state,
 					placed: newPlaced
 				};
@@ -136,12 +137,29 @@ function handleAction(action: Infer<typeof StateAction>): StateActionResp {
 							}
 						})
 					);
-					setState({
+					newState = {
 						...newState,
 						stage: 'split',
 						distr,
-						candidate: null
-					});
+						candidate: null,
+						_history: [...(state._history ?? [])]
+					};
+					newState = { ...newState, _history: (newState._history ?? []).concat([newState]) };
+					setState(newState);
+					const history: Tierlist = {
+						loose: [],
+						tiers: (newState._history ?? []).flatMap((round, i) => {
+							if (round.stage !== 'split') return [];
+							return {
+								color: '#8a8',
+								pieces: round.placed.flatMap(
+									(placed) => round.pieces.find((piece) => piece.id === placed) ?? []
+								),
+								title: `Ronda ${i + 1}`
+							};
+						})
+					};
+					fs.writeFileSync('./storage/history.tier', JSON.stringify(history), 'utf8');
 				} else {
 					// Continue placing
 					setState(newState);

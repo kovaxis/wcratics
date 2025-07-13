@@ -19,6 +19,7 @@ export type GlobalState = (
 ) & {
 	_availPieces: string[];
 	_availCategories: string[];
+	_history?: GlobalState[];
 };
 
 export type Piece = {
@@ -57,3 +58,18 @@ export type StateActionResp = {
 };
 
 export type ShowCard = 'hide' | 'show' | 'slot' | 'btn' | 'blank';
+
+export interface TierPiece {
+	img: string;
+}
+
+export interface Tier {
+	pieces: TierPiece[];
+	color: string;
+	title: string;
+}
+
+export interface Tierlist {
+	tiers: Tier[];
+	loose: TierPiece[];
+}

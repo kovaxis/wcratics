@@ -7,7 +7,8 @@ let state: GlobalState = {
 	stage: 'idle',
 	candidate: null,
 	_availPieces: [],
-	_availCategories: []
+	_availCategories: [],
+	_history: []
 };
 try {
 	const rawState = fs.readFileSync('./storage/state.json', 'utf8');
