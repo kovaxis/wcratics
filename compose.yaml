@@ -6,3 +6,5 @@ services:
     restart: unless-stopped
     ports:
       - '$PORT:3000'
+    volumes:
+      - ./storage:/app/storage

@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import type { Category, Piece } from '$lib/types';
 
 async function loadPieces(): Promise<Piece[]> {
@@ -16,20 +17,32 @@ async function loadPieces(): Promise<Piece[]> {
 		loose: TierPiece[];
 	}
 
-	const { default: rawSrc } = await import('../../../tierlist.tier?raw');
-	const rawParsed: Tierlist = JSON.parse(rawSrc);
+	let rawParsed: Tierlist;
+	try {
+		const rawSrc = fs.readFileSync('./storage/tierlist.tier', 'utf8');
+		rawParsed = JSON.parse(rawSrc);
+	} catch (e) {
+		console.warn(e);
+		console.warn('failed to read tierlist, defaulting to no pieces');
+		rawParsed = { tiers: [], loose: [] };
+	}
 	const rawPieces = rawParsed.tiers.flatMap((tier) => tier.pieces).concat(rawParsed.loose);
-	if (rawPieces.length === 0) throw new Error('no pieces');
 	return rawPieces.map((piece, i) => ({ id: i.toString(), img: piece.img }));
 }
 
 async function loadCategories(): Promise<Category[]> {
-	const { default: rawSrc } = await import('../../../categories.txt?raw');
+	let rawSrc: string;
+	try {
+		rawSrc = fs.readFileSync('./storage/categories.txt', 'utf8');
+	} catch (e) {
+		console.warn(e);
+		console.warn('failed to read categories, defaulting to no categories');
+		rawSrc = '';
+	}
 	const rawCategories = rawSrc
 		.split('\n')
 		.map((s) => s.trim())
 		.filter((s) => s.length > 0);
-	if (rawCategories.length === 0) throw new Error('no categories');
 	return rawCategories.map((category, i) => ({
 		id: i.toString(),
 		text: category

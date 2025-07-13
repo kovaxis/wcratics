@@ -1,4 +1,5 @@
 import type { GlobalState } from '$lib/types';
+import * as fs from 'fs';
 
 export type GlobalStateListener = (state: GlobalState) => void;
 
@@ -8,6 +9,13 @@ let state: GlobalState = {
 	_availPieces: [],
 	_availCategories: []
 };
+try {
+	const rawState = fs.readFileSync('./storage/state.json', 'utf8');
+	state = JSON.parse(rawState);
+} catch (e) {
+	console.warn('failed to read state.json:', e);
+}
+
 const listeners: Set<GlobalStateListener> = new Set();
 
 export function getState(): GlobalState {
@@ -30,6 +38,7 @@ function filterState(val: unknown): unknown {
 
 export function setState(newState: GlobalState) {
 	state = newState;
+	fs.writeFileSync('./storage/state.json', JSON.stringify(state), 'utf8');
 	const publicState = filterState(state) as GlobalState;
 	for (const listener of listeners) {
 		try {
