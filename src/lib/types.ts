@@ -19,7 +19,7 @@ export type GlobalState = (
 ) & {
 	_availPieces: string[];
 	_availCategories: string[];
-	_history?: GlobalState[];
+	_history: GlobalState[];
 };
 
 export type Piece = {

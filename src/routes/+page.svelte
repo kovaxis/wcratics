@@ -140,7 +140,7 @@
 			Nombre: {name}
 			{'master' in globalState && globalState.master === name ? '(Vocal de mesa)' : ''}
 		</p>
-		<h1>Waifucratics</h1>
+		<h1>Wcratics</h1>
 		{#if globalState.stage === 'idle' || globalState.stage === 'split'}
 			<h3>Candidato a vocal: {globalState.candidate ?? ''}</h3>
 			<button onclick={() => execAction({ ty: 'postular', name: name ?? '' })}>Ser vocal</button>

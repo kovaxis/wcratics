@@ -82,7 +82,8 @@ function handleAction(action: Infer<typeof StateAction>): StateActionResp {
 					deadline: deadline,
 					placed: pieces.map(() => null),
 					_availPieces: leftPieces,
-					_availCategories: leftCategories
+					_availCategories: leftCategories,
+					_history: state._history
 				});
 			}
 			return { status: 'ok' };

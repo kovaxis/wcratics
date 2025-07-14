@@ -13,6 +13,7 @@ let state: GlobalState = {
 try {
 	const rawState = fs.readFileSync('./storage/state.json', 'utf8');
 	state = JSON.parse(rawState);
+	state._history = state._history ?? [];
 } catch (e) {
 	console.warn('failed to read state.json:', e);
 }
